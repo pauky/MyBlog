@@ -1,0 +1,35 @@
+
+<%- include header %>
+	<div class="container">
+
+    <%- include containerHeader %>
+    <div class="row">
+
+      <div class="col-sm-8 blog-main">
+        <% posts.forEach(function (post, index) { %>
+          <div class="blog-post">
+            <h2 class="blog-post-title"><a href=/details?id=<%= post._id %>><%= post.title %></a></h2>
+            <p class="blog-post-meta"><%= post.meta.updateAt %> by <a href=/u?userId=<%= post.authorId %>&username=<%= post.author %>><%= post.author %></a></p>
+
+            <p><%- post.content %></p>
+          </div><!-- /.blog-post -->
+        <% }) %>
+
+        <nav>
+          <ul class="pager">
+            <% if (isFirstPage === '' && isLastPage === '') {
+            %>
+            <li><a href=/?p=<%= page-1 %>>Previous</a></li>
+            <li><a href=/?p=<%= page+1 %>>Next</a></li>
+            <% }else if (isFirstPage === '1' && isLastPage === '') { %>
+            <li><a href=/?p=<%= page+1 %>>Next</a></li>
+            <% }else if (isLastPage === '1' && isFirstPage === '') { %>
+            <li><a href=/?p=<%= page-1 %>>Previous</a></li> 
+            <% }else{ %>
+            <li></li>
+            <% } %>
+          </ul>
+        </nav>
+
+      <%- include rightNav %>
+<%- include footer %>

@@ -1,0 +1,28 @@
+{
+  "name": "MyBlog",
+  "version": "1.0.0",
+  "description": "myblog",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "glowry",
+  "license": "ISC",
+  "dependencies": {
+    "connect-flash": "^0.1.1",
+    "ejs": "^1.0.0",
+    "eventproxy": "^0.3.1",
+    "express": "^3.18.2",
+    "express-session": "^1.9.1",
+    "markdown": "^0.5.0",
+    "moment": "^2.8.3",
+    "mongoose": "^3.8.18",
+    "nodemailer": "0.3.43",
+    "passport": "^0.2.1",
+    "passport-github": "^0.1.5",
+    "q": "^1.1.1",
+    "underscore": "^1.7.0",
+    "utility": "^1.2.1",
+    "validator": "^3.22.1"
+  }
+}

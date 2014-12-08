@@ -1,0 +1,43 @@
+var mongoose = require('mongoose');
+
+var UserSchema = new mongoose.Schema({
+	username: String,
+	password: String,
+	regMail: String,
+	head: String,
+	email: String,
+	state: Boolean
+});
+
+UserSchema.statics = {
+	fetch: function (callback) {
+		return this
+			.find({})
+			.exec(callback);
+	},
+	findByCondition: function (conditionObj, callback) {
+		return this
+			.findOne(conditionObj)
+			.exec(callback);
+	},
+	paging: function (page,callback) {
+		var total = 0;
+		return this
+			.find({}, function (err, posts) {
+				if (err) {
+					console.log(err);
+				}
+				total = posts.length;
+			})
+			.skip((page - 1) * 2)
+			.limit(2)
+			.exec(function(err,posts) {
+				if (err) {
+					console.log(err);
+				}
+				callback(null, posts, total);
+			});
+	}
+}
+
+module.exports = UserSchema;

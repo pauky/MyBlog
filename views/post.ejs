@@ -1,0 +1,95 @@
+
+<%- include header %>
+	<div class="container">
+
+    <%- include containerHeader %>
+
+    <div class="row">
+    	<div class="col-sm-8 blog-main">
+	    	<form class="form-horizontal" role="form" method="post">
+	    	  <div class="form-group">
+	    	    <label for="inputEmail3" class="col-sm-2 control-label">标题</label>
+	    	    <div class="col-sm-10">
+	    	      <input type="text" class="form-control" placeholder="Ttitle" name="title" required>
+	    	    </div>
+	    	  </div>
+	    	  <div class="form-group">
+	    	    <label for="inputPassword3" class="col-sm-2 control-label">内容</label>
+	    	    <div class="col-sm-10">
+	    	      <textarea class="form-control" rows="15" placeholder="Content" name="content" required id="postContent"></textarea>
+	    	    </div>
+	    	  </div>
+	    	  <div class="form-group">
+	    	    <div class="col-sm-offset-2 col-sm-10">
+                    <button class="btn btn-primary" type="submit">发表</button>
+	    	        <button  class="btn btn-default" id="uploadImg" type="button">上传图片</button>
+	    	    </div>
+	    	  </div>
+	    	</form>
+            <!-- 模态框-start -->
+            <div class="modal fade" id="uploadImgModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content" style="height:200px;width:500px;">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                            <div class="modal-title" style="font-size:20px;">上传图片</div>
+                        </div>
+                        <div class="modal-body">
+                            <div class="uploadOutDiv">
+                                <input type="file" name='uploadImg' id="fileupload"/>
+                                <button class="btn btn-lg btn-primary" type="button" id="uploadBtn">上传图片</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- 模态框-end -->
+	    <%- include rightNav %>
+	    
+<%- include footer %>
+<script src="ajaxfileupload.js"></script>
+<script>
+$(function () {
+    // 主动触发上传按钮
+    $('#uploadBtn').click(function () {
+        $('#fileupload').trigger("click");
+    });
+    // 显示上传图片模态框
+    $('#uploadImg').click(function () {
+        $('#uploadImgModal').modal('show');
+    });
+    // 选择图片完成
+    $('#fileupload').change(function () {
+        if ($('#fileupload').val() === '') {
+            alert('请选择上传文件!');
+            return;
+        }
+        ajaxFileUpload();
+    });
+    // 执行上传图片操作
+    function ajaxFileUpload() {
+      $.ajaxFileUpload({
+        url: '/upload', //用于文件上传的服务器端请求地址
+        secureuri: false, //是否需要安全协议，一般设置为false
+        fileElementId: 'fileupload', //文件上传域的ID
+        dataType: 'json', //返回值类型 一般设置为json
+        success: function (data, status) {//服务器成功响应处理函数
+            var $postContent = $('#postContent');
+            data = $.parseJSON(data);
+            if (data.error === '') {
+                $postContent.val($postContent.val() + '![](/' + data.imgURL + ')');
+            } else {
+                alert(data.error);
+            }
+            $('#uploadImgModal').modal('hide');
+        },
+        error: function (data, status, e) {//服务器响应失败处理函数
+            $('#uploadImgModal').modal('hide');
+            alert(e);
+        }
+      });
+      return false;
+    }
+});
+
+</script>
