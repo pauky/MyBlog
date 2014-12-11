@@ -2,6 +2,8 @@
 
 ##使用方法：
 
+安装node.js与mongodb
+
 ```
 npm install
 ```
