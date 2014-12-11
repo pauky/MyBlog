@@ -1,154 +1,153 @@
 
 <%- include header %>
-	<div class="container">
+    <div class="container">
 
-		<%- include containerHeader %>
+        <%- include containerHeader %>
 
-					<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
-						<div class="modal-dialog">
-							<div class="modal-content">
-								<div class="modal-header">
-									<button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-									<h4 class="modal-title" id="myModalLabel">Modal title</h4>
-								</div>
-								<div class="modal-body">
-									<form class="form-horizontal" role="form" method="post">
-										<input type="hidden" name="id">
-										<div class="form-group">
-											<label for="inputEmail3" class="col-sm-2 control-label">标题</label>
-											<div class="col-sm-9">
-												<input type="text" class="form-control" placeholder="Ttitle" name="title">
-											</div>
-										</div>
-										<div class="form-group">
-											<label for="inputPassword3" class="col-sm-2 control-label">内容</label>
-											<div class="col-sm-9">
-												<textarea class="form-control" rows="15" placeholder="Content" name="content"></textarea>
-											</div>
-										</div>
-									</form>
-								</div>
-								<div class="modal-footer">
-									<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-									<button type="button" class="btn btn-primary" id="savePost">Save changes</button>
-								</div>
-							</div>
-						</div>
-					</div>
-					<table class="table table-hover" id="archivesList">
-						<thead>
-							<tr>
-								<th>id</th>
-								<th>Title</th>
-								<th>Author</th>
-								<th>PublishTime</th>
-								<th>operations</th>
-							</tr>
-						</thead>
-						<tbody>
-						</tbody>
-					</table>
-				
+                    <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                                    <h4 class="modal-title" id="myModalLabel">Modal title</h4>
+                                </div>
+                                <div class="modal-body">
+                                    <form class="form-horizontal" role="form" method="post">
+                                        <input type="hidden" name="id">
+                                        <div class="form-group">
+                                            <label for="inputEmail3" class="col-sm-2 control-label">标题</label>
+                                            <div class="col-sm-9">
+                                                <input type="text" class="form-control" placeholder="Ttitle" name="title">
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="inputPassword3" class="col-sm-2 control-label">内容</label>
+                                            <div class="col-sm-9">
+                                                <textarea class="form-control" rows="15" placeholder="Content" name="content"></textarea>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                                    <button type="button" class="btn btn-primary" id="savePost">Save changes</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <table class="table table-hover" id="archivesList">
+                        <thead>
+                            <tr>
+                                <th>id</th>
+                                <th>Title</th>
+                                <th>Author</th>
+                                <th>PublishTime</th>
+                                <th>operations</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                
 
-				<nav>
-					<ul class="pager" id="archivesPage"></ul>
-				</nav>
+                <nav>
+                    <ul class="pager" id="archivesPage"></ul>
+                </nav>
 
 <%- include footer %>
 <script>
 $(function() {
-	function getPostPageInfo(page) {
-		page = parseInt(page, 10);
-		$.post('/getPostPageInfo',
-			{page: page},
-			function (msg) {
-				console.log(msg);
-				var listHtml = '',
-						i = 0,
-						posts = null,
-						username,
-						pageHtml;
-				msg = $.parseJSON(msg);
-				posts = msg.posts;
-				username = msg.username;
-				for (; i < posts.length; i += 1) {
-					listHtml += '<tr><td>'+ (i+1) +'</td><td class="title">'+ posts[i].title +'</td><td>'+ posts[i].author +'</td><td>'+ posts[i].meta.updateAt +'</td><td data-id="'+posts[i]._id+'"><button class="btn btn-default editPost" type="button">edit</button>&nbsp;<button class="btn btn-default delPost" type="button">del</button></td></tr>';
-				}
-				if (msg.isFirstPage === '' && msg.isLastPage === '') {
-					pageHtml = '<li><a href="#" data-page="'+(page-1)+'" id="prePage">Previous</a></li>'
-						+'<li><a href="#" data-page="'+(page+1)+'" id="nextPage">Next</a></li>';
-				} else if (msg.isFirstPage === '1' && msg.isLastPage === '') {
-					pageHtml = '<li><a href="#" data-page="'+(page+1)+'" id="nextPage">Next</a></li>';
-				} else if (msg.isLastPage === '1' && msg.isFirstPage === '') {
-					pageHtml = '<li><a href="#" data-page="'+(page-1)+'" id="prePage">Previous</a></li>';
-				} else {
-					pageHtml = '<li></li>';
-				}
-				$('#archivesList tbody').html(listHtml);
-				$('#archivesPage').html(pageHtml).prepend('<input type="hidden" value="'+page+'"/>');
-			},
-			'text'
-		);
-	}
-	$('#archivesPage').on('click', '#nextPage, #prePage', function () {
-		getPostPageInfo($(this).attr('data-page'));
-	});
-	getPostPageInfo(1);
-	//删除文章
-	$('#archivesList').on('click', '.delPost', function () {
-		var $this = $(this),
-				id = $this.parent().attr('data-id');
-		if (confirm('确认删除此文章？')) {
-			$.post('/delPost',
-				{id: id},
-				function (res) {
-					$this.parent().parent().remove();
-					getPostPageInfo($('#archivesPage input').val());
-				},
-				'text'
-			);
-		}
-	});
+    function getPostPageInfo(page) {
+        page = parseInt(page, 10);
+        $.post('/getPostPageInfo',
+            {page: page},
+            function (msg) {
+                var listHtml = '',
+                        i = 0,
+                        posts = null,
+                        username,
+                        pageHtml;
+                msg = $.parseJSON(msg);
+                posts = msg.posts;
+                username = msg.username;
+                for (; i < posts.length; i += 1) {
+                    listHtml += '<tr><td>'+ (i+1) +'</td><td class="title">'+ posts[i].title +'</td><td>'+ posts[i].author +'</td><td>'+ posts[i].meta.updateAt +'</td><td data-id="'+posts[i]._id+'"><button class="btn btn-default editPost" type="button">edit</button>&nbsp;<button class="btn btn-default delPost" type="button">del</button></td></tr>';
+                }
+                if (msg.isFirstPage === '' && msg.isLastPage === '') {
+                    pageHtml = '<li><a href="#" data-page="'+(page-1)+'" id="prePage">Previous</a></li>'
+                        +'<li><a href="#" data-page="'+(page+1)+'" id="nextPage">Next</a></li>';
+                } else if (msg.isFirstPage === '1' && msg.isLastPage === '') {
+                    pageHtml = '<li><a href="#" data-page="'+(page+1)+'" id="nextPage">Next</a></li>';
+                } else if (msg.isLastPage === '1' && msg.isFirstPage === '') {
+                    pageHtml = '<li><a href="#" data-page="'+(page-1)+'" id="prePage">Previous</a></li>';
+                } else {
+                    pageHtml = '<li></li>';
+                }
+                $('#archivesList tbody').html(listHtml);
+                $('#archivesPage').html(pageHtml).prepend('<input type="hidden" value="'+page+'"/>');
+            },
+            'text'
+        );
+    }
+    $('#archivesPage').on('click', '#nextPage, #prePage', function () {
+        getPostPageInfo($(this).attr('data-page'));
+    });
+    getPostPageInfo(1);
+    //删除文章
+    $('#archivesList').on('click', '.delPost', function () {
+        var $this = $(this),
+                id = $this.parent().attr('data-id');
+        if (confirm('确认删除此文章？')) {
+            $.post('/delPost',
+                {id: id},
+                function (res) {
+                    $this.parent().parent().remove();
+                    getPostPageInfo($('#archivesPage input').val());
+                },
+                'text'
+            );
+        }
+    });
 
-	//编辑文章
-	$('#archivesList').on('click', '.editPost', function () {
-		var $this = $(this);
-				title = $this.parent().siblings('.title').text(),
-				id = $this.parent().attr('data-id');
-		$.post('/getPostInfo',
-			{id: id},
-			function (res) {
-				res = $.parseJSON(res);
-				$('#myModal form input[name="id"]').val(res._id);
-				$('#myModal form input[name="title"]').val(title);
-				$('#myModal form textarea[name="content"]').val(res.content);
-				$('#myModal').modal('show');
-			},
-			'text'
-		);
-	});
+    //编辑文章
+    $('#archivesList').on('click', '.editPost', function () {
+        var $this = $(this),
+            title = $this.parent().siblings('.title').text(),
+            id = $this.parent().attr('data-id');
+        $.post('/getPostInfo',
+            {id: id},
+            function (res) {
+                res = $.parseJSON(res);
+                $('#myModal form input[name="id"]').val(res._id);
+                $('#myModal form input[name="title"]').val(title);
+                $('#myModal form textarea[name="content"]').val(res.content);
+                $('#myModal').modal('show');
+            },
+            'text'
+        );
+    });
 
-	//保存文章
-	$('#myModal').on('click', '#savePost', function () {
-		var $myModal = $('#myModal'),
-			$that = $(this);
-		$.post('/savePost',
-			{
-				id: $myModal.find('input[name="id"]').val(),
-				title: $myModal.find('input[name="title"]').val(),
-				content: $myModal.find('textarea').val()
-			},
-			function (res) {
-				if (res === '修改成功') {
-					tips(res);
-					$myModal.modal('hide');
-					getPostPageInfo($('#archivesPage input').val());
-				}else {
-					$that.parent().prepend('<span style="color:red;margin-left:50px;">' + res + '</span>');
-				}
-			},
-			'text'
-		);
-	});
+    //保存文章
+    $('#myModal').on('click', '#savePost', function () {
+        var $myModal = $('#myModal'),
+            $that = $(this);
+        $.post('/savePost',
+            {
+                id: $myModal.find('input[name="id"]').val(),
+                title: $myModal.find('input[name="title"]').val(),
+                content: $myModal.find('textarea').val()
+            },
+            function (res) {
+                if (res === '修改成功') {
+                    tips(res);
+                    $myModal.modal('hide');
+                    getPostPageInfo($('#archivesPage input').val());
+                }else {
+                    $that.parent().prepend('<span style="color:red;margin-left:50px;">' + res + '</span>');
+                }
+            },
+            'text'
+        );
+    });
 });
 </script>

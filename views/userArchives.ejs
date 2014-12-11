@@ -11,7 +11,7 @@
             <h2 class="blog-post-title"><a href=/details?id=<%= post._id %>><%= post.title %></a></h2>
             <p class="blog-post-meta"><%= post.meta.updateAt %> by <a href=/u?username=<%= post.author %>&userId=<%= post.authorId %>><%= post.author %></a></p>
 
-            <p><%= post.content %></p>
+            <p><%- post.content %></p>
           </div><!-- /.blog-post -->
         <% }) %>
 

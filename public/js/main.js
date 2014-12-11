@@ -12,4 +12,7 @@ $(function () {
             blog_nav_a.eq(0).addClass('active');
             break;
     }
+
+    // usersList
+    $('.selectpicker').selectpicker();
 });
