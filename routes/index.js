@@ -20,14 +20,27 @@ mongoose.connect('mongodb://localhost/' + config.dbName);
 function app(app) {
 
     //index
-    app.get('/', function (req, res) {
+    app.get('/', function (req, res, next) {
         //判断是否是第一页，并把请求的页数转换成 number 类型
         var page = req.query.p ? parseInt(req.query.p, 10) : 1;
         Posts.paging(page, function (err, posts, total) {
             var ep = new eventproxy(),
-                i;
+                i,
+                renderIndex = function (data) {
+                    res.render('index', {
+                        title: config.name,
+                        tips: req.flash('success').toString() || req.flash('error').toString() || '',
+                        posts: data,
+                        user: req.session.user,
+                        page: page,
+                        isLastPage: page*2 >= total ? '1' : '',
+                        isFirstPage: (total === 0) || (page === 1) ? '1' : ''
+                    });
+                };
+            err = 1;
             if (err) {
                 console.log(err);
+                return next(err);
             }
             total = total || 0;
             if (posts.length > 0) {
@@ -44,15 +57,7 @@ function app(app) {
                         mo.content = markdown.toHTML(mo.content);
                         return mo;
                     });
-                    res.render('index', {
-                        title: config.name,
-                        tips: req.flash('success').toString() || req.flash('error').toString() || '',
-                        posts: data,
-                        user: req.session.user,
-                        page: page,
-                        isLastPage: page*2 >= total ? '1' : '',
-                        isFirstPage: (total === 0) || (page === 1) ? '1' : ''
-                    });
+                    renderIndex(data);
                 });
                 posts.forEach(function (post) {
                     Users.findByCondition({_id: post.authorId}, function (err, user) {
@@ -63,15 +68,7 @@ function app(app) {
                     });
                 });
             } else {
-                res.render('index', {
-                    title: config.name,
-                    tips: req.flash('success').toString() || req.flash('error').toString() || '',
-                    posts: [],
-                    user: req.session.user,
-                    page: page,
-                    isLastPage: page*2 >= total ? '1' : '',
-                    isFirstPage: (total === 0) || (page === 1) ? '1' : ''
-                });
+                renderIndex([]);
             }
         });
     });
@@ -668,24 +665,21 @@ function app(app) {
     app.get('/logout', function (req, res) {
         req.session.user = null;
         req.flash('success', '登出成功!');
-      return res.redirect('/');//登出成功后跳转到主页
+        return res.redirect('/');//登出成功后跳转到主页
     });
     
     /*这里我们可以直接使用 Express 的 session 功能，所以禁掉 Passport 的 session 功能，前面提到过 Passport 默认会将取得的用户信息存储在 req.user 中而不是 req.session.user，为了保持兼容，所以我们提取并序列化有用的数据保存到 req.session.user 中。*/
     app.get("/login/github", passport.authenticate("github", {session: false}));
     app.get("/login/github/callback", passport.authenticate("github", {
-      session: false,
-      failureRedirect: '/login',
-      successFlash: '登陆成功！'
+        session: false,
+        failureRedirect: '/login',
+        successFlash: '登陆成功！'
     }), function (req, res) {
-      req.session.user = {name: req.user.username, head: req.user._json.avatar_url};
-      res.redirect('/');
+        req.session.user = {name: req.user.username, head: req.user._json.avatar_url};
+        res.redirect('/');
     });
 
-    //404
-    app.use(function (req, res) {
-        res.render('404');
-    });
+    
 
     //检查用户登录状态
     function checkLogin(req, res, next) {

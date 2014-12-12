@@ -4,6 +4,8 @@ var path = require('path');
 var session = require('express-session');
 var flash = require('connect-flash');
 var config = require('./config');
+var fs = require('fs');
+var errorLog = fs.createWriteStream('error.log', {flags: 'a'});
 var app = express();
 
 //app.use(express.bodyParser());//格式化表单数据
@@ -40,6 +42,19 @@ app.use(express.bodyParser({ keepExtensions: true, uploadDir: './public/imgs' })
 app.use(express.methodOverride());
 
 routes(app);
+
+// 内部错误时调用
+app.use(function (err, req, res, next) {
+    // res.status(err.status || 500);
+    var meta = '[' + new Date() + '] ' + req.url + '\n';
+    errorLog.write(meta + err + '\n'); // 记录日志
+    return res.status(500).send('500 status');
+});
+
+// 404
+app.use(function (req, res) {
+    res.render('404');
+});
 
 app.listen(3000, function (req, res) {
 	console.log('app is listening on port 3000');
