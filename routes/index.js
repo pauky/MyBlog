@@ -63,6 +63,7 @@ function app(app) {
                     Users.findByCondition({_id: post.authorId}, function (err, user) {
                         if (err) {
                             console.log(err);
+                            return next(err);
                         }
                         ep.emit('findByAuthorId', user);
                     });
@@ -93,6 +94,7 @@ function app(app) {
         Users.findByCondition({username: newUsername}, function (err, user) {
             if (err) {
                 console.log(err);
+                return next(err);
             }
             if (user) {
                 req.flash('error', '用户已存在!');
@@ -119,6 +121,7 @@ function app(app) {
             _user.save(function (err) {
                 if (err) {
                     console.log(err);
+                    return next(err);
                 }
                 mail.sendMail(email, utility.md5(email + password + config.session_secret), newUsername);
                 req.flash('success', '欢迎加入 ' + config.name + '！我们已给您的注册邮箱发送了一封邮件，请点击里面的链接来激活您的帐号。');
@@ -165,6 +168,7 @@ function app(app) {
         Users.findByCondition({username: username, state: true}, function (err, user) {
             if (err) {
                 console.log(err);
+                return next(err);
             }
             if (user) {
                 md5 = crypto.createHash('md5');
@@ -263,6 +267,7 @@ function app(app) {
                 _post.save(function (err) {
                     if (err) {
                         console.log(err);
+                        return next(err);
                     }
                     req.flash('success', '发表成功');
                     return res.redirect('/post');
@@ -331,8 +336,8 @@ function app(app) {
             }).then(function (msg) {
                 return updateReadNum(msg);
             }).fail(function (err) {
-                req.flash('error',err);
-                res.redirect('back');
+                console.log(err);
+                return next(err);
             });
         }
     });
@@ -346,6 +351,7 @@ function app(app) {
                 var data = [];
                 if (err) {
                     console.log(err);
+                    return next(err);
                 }
                 total = total || 0;
                 // for (var i = 0; i < posts.length; i += 1) {
@@ -393,6 +399,7 @@ function app(app) {
         Posts.remove({_id: req.body.id}, function (err, result) {
             if (err) {
                 console.log(err);
+                return next(err);
             }
             if (result) {
                 res.end('删除成功');
@@ -481,8 +488,7 @@ function app(app) {
                 res.end('{"posts": '+JSON.stringify(data)+', "total": "'+total+'", "isLastPage": "'
                     +isLastPage+'", "isFirstPage": "'+isFirstPage+'"}');
             }).fail(function (err) {
-                req.flash('error', err);
-                res.redirect('back');
+                return next(err);
             });
     });
     //admin
@@ -502,6 +508,7 @@ function app(app) {
             AdminUsers.findByCondition({adminname: adminname}, function (err, admin) {
                 if (err) {
                     console.log(err);
+                    return next(err);
                 }
                 if (admin) {
                     md5 = crypto.createHash('md5');
@@ -539,6 +546,7 @@ function app(app) {
             var data = [];
             if (err) {
                 console.log(err);
+                return next(err);
             }
             total = total || 0;
             if (users) {
@@ -576,6 +584,7 @@ function app(app) {
         AdminUsers.findByCondition({adminname: newUsername}, function (err, user) {
             if (err) {
                 console.log(err);
+                return next(err);
             }
             if (user) {
                 req.flash('error', '用户已存在!');
@@ -601,6 +610,7 @@ function app(app) {
             _user.save(function (err) {
                 if (err) {
                     console.log(err);
+                    return next(err);
                 }
                 // mail.sendMail(email, utility.md5(email + password + config.session_secret), newUsername);
                 // req.flash('success', '欢迎加入 ' + config.name + '！我们已给您的注册邮箱发送了一封邮件，请点击里面的链接来激活您的帐号。');
@@ -615,6 +625,7 @@ function app(app) {
         Users.findByCondition({_id: id}, function (err, user) {
             if (err) {
                 console.log(err);
+                return next(err);
             }
             res.jsonp(user);
         });
@@ -634,6 +645,7 @@ function app(app) {
         Users.remove({_id: req.body.id}, function (err, result) {
             if (err) {
                 console.log(err);
+                return next(err);
             }
             if (result) {
                 res.end('删除成功');
@@ -647,6 +659,7 @@ function app(app) {
         Posts.findByReadNum(10, function (err, posts) {
             if (err) {
                 console.log(err);
+                return next(err);
             }
             res.end(JSON.stringify(posts));
         });
@@ -656,6 +669,7 @@ function app(app) {
         Posts.findById(id, function (err, post) {
             if (err) {
                 console.log(err);
+                return next(err);
             }
             res.jsonp(post);
         });
