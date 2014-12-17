@@ -1,5 +1,5 @@
 var express = require('express');
-var routes = require('./routes'); // './' is necessary
+var routes = require('./web_routes'); // './' is necessary
 var path = require('path');
 var session = require('express-session');
 var flash = require('connect-flash');
@@ -44,18 +44,22 @@ app.use(express.methodOverride());
 routes(app);
 
 // 内部错误时调用
-app.use(function (err, req, res, next) {
-    // res.status(err.status || 500);
-    var meta = '[' + new Date() + '] ' + req.url + '\n';
-    errorLog.write(meta + err + '\n'); // 记录日志
-    return res.status(500).send('500 status');
-});
+if (!config.debug) {
+    app.use(function (err, req, res, next) {
+        // windows下的文本文件换行符:\r\n 
+        // linux/unix下的文本文件换行符:\r 
+        // Mac下的文本文件换行符:\n
+        var meta = '[' + new Date() + '] ' + req.url;
+        errorLog.write(meta + err + '\r\n'); // 记录日志
+        return res.status(500).send('500 status');
+    });
+}
 
 // 404
 app.use(function (req, res) {
     res.render('404');
 });
 
-app.listen(3000, function (req, res) {
-	console.log('app is listening on port 3000');
+app.listen(config.port, function (req, res) {
+	console.log('app is listening on port ' + config.port);
 });

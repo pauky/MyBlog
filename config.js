@@ -1,7 +1,13 @@
 var config = {
-	name: 'MyBlog', // 博客名
-	host: 'localhost:3000', // 博客地址
-    dbName: 'myblog', // 数据库名称
+    // base
+    name: 'MyBlog', // 博客名
+
+    // web
+    host: 'localhost:3000', // 博客地址
+    port: 3000, // web服务器端口
+
+    // debug
+    debug: true, // true: 开启开放调试模式  false: 开启线上模式
 
     // db
     dbName: 'myblog', // 数据库名称
@@ -17,9 +23,10 @@ var config = {
     callbackURL: 'your callbackURL',
 
     // smtp
-	session_secret: 'glowrypaukyBlog' // 邮箱验证时加入的随机字符串
-    mailUser: 'youmail@mail.com', // 邮箱账号
-    mailPassword: 'your password' // 邮箱密码
+    session_secret: 'glowrypaukyBlog' // 邮箱验证时加入的字符串
+    mailUser: 'youmail@sina.com', // 邮箱账号
+    mailPassword: 'youpassword' // 邮箱密码
+
 };
 
 module.exports = config;

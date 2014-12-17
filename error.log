@@ -1,1 +1,13 @@
-﻿
+﻿[Wed Dec 17 2014 13:55:26 GMT+0800 (中国标准时间)] /ajaxTypeError: Object function model(doc, fields, skipId) {
+    if (!(this instanceof model))
+      return new model(doc, fields, skipId);
+    Model.call(this, doc, fields, skipId);
+  } has no method 'findByReadNum'
+[Wed Dec 17 2014 13:55:27 GMT+0800 (中国标准时间)] /details?id=54868a9a2fd9a0c810e5ed63TypeError: Object function model(doc, fields, skipId) {
+    if (!(this instanceof model))
+      return new model(doc, fields, skipId);
+    Model.call(this, doc, fields, skipId);
+  } has no method 'updateReadNum'
+[Wed Dec 17 2014 14:21:12 GMT+0800 (中国标准时间)] /details?id=54911ed23328ac74df32a38CastError: Cast to ObjectId failed for value "54911ed23328ac74df32a38" at path "_id"
+[Wed Dec 17 2014 14:22:00 GMT+0800 (中国标准时间)] /details?id=54911ed23328ac74df32a38CastError: Cast to ObjectId failed for value "54911ed23328ac74df32a38" at path "_id"
+[Wed Dec 17 2014 14:24:49 GMT+0800 (中国标准时间)] /details?id=54911ed23328ac74df32a38CastError: Cast to ObjectId failed for value "54911ed23328ac74df32a38" at path "_id"
