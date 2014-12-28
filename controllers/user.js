@@ -2,6 +2,7 @@ var config = require('../config'),
     crypto = require('crypto'),
     utility = require('utility'),
     moment = require('moment'),
+    markdown = require('markdown').markdown,
     User = require('../models').User,
     Post = require('../models').Post;
 

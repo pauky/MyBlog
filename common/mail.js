@@ -2,11 +2,11 @@
 
 var nodemailer = require("nodemailer"),
     config = require('../config'),
-    SITE_ROOT_URL = 'http://' + config.host;
+    SITE_ROOT_URL = 'http://' + config.host + ':' + config.port;
 exports.sendMail = function (who, token, name) {
 // 开启一个 SMTP 连接池
 var smtpTransport = nodemailer.createTransport("SMTP",{
-  host: "smtp.sina.com", // 主机
+  host: "smtp.163.com", // 主机
   secureConnection: true, // 使用 SSL
   port: 465, // SMTP 端口
   auth: {
@@ -14,9 +14,12 @@ var smtpTransport = nodemailer.createTransport("SMTP",{
     pass: config.mailPassword // 密码
   }
 });
+console.log(who);
+console.log(config.mailUser);
+console.log(config.mailPassword);
 // 设置邮件内容
 var mailOptions = {
-  from: config.name + "<glowrypauky@sina.com>", // 发件地址
+  from: config.name + "<glowrypauky@163.com>", // 发件地址
   to: who, // 收件列表
   subject: "Hello world", // 标题
   html: '<p>您好：' + name + '</p>' +
