@@ -10,13 +10,20 @@
 	    	  <div class="form-group">
 	    	    <label for="inputEmail3" class="col-sm-2 control-label">标题</label>
 	    	    <div class="col-sm-10">
-	    	      <input type="text" class="form-control" placeholder="Ttitle" name="title" required>
+                    <input type="text" class="form-control" placeholder="Ttitle" name="title" required>
 	    	    </div>
 	    	  </div>
+              <div class="form-group">
+                <label for="tag" class="col-sm-2 control-label">标签</label>
+                <div class="col-sm-9 form-inline">
+                    <select name="tag" class="form-control" id="tagSelect"></select>
+                    <button class="btn" type="button" id="addTag">增加标签</button>
+                </div>
+              </div>
 	    	  <div class="form-group">
 	    	    <label for="inputPassword3" class="col-sm-2 control-label">内容</label>
 	    	    <div class="col-sm-10">
-	    	      <textarea class="form-control" rows="15" placeholder="Content" name="content" required id="postContent"></textarea>
+                    <textarea class="form-control" rows="15" placeholder="Content" name="content" required id="postContent"></textarea>
 	    	    </div>
 	    	  </div>
 	    	  <div class="form-group">
@@ -26,7 +33,7 @@
 	    	    </div>
 	    	  </div>
 	    	</form>
-            <!-- 模态框-start -->
+            <!-- 上传图片模态框-start -->
             <div class="modal fade" id="uploadImgModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
                 <div class="modal-dialog">
                     <div class="modal-content" style="height:200px;width:500px;">
@@ -43,7 +50,27 @@
                     </div>
                 </div>
             </div>
-            <!-- 模态框-end -->
+            <!-- 上传图片模态框-end -->
+            <!-- 增加标签模态框-start -->
+            <div class="modal fade bs-example-modal-sm" id="addTagModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-sm">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                            <div class="modal-title" style="font-size:20px;">增加标签</div>
+                        </div>
+                        <div class="modal-body">
+                            <form class="form-inline" role="form">
+                              <div class="form-group">
+                                <input type="text" class="form-control" placeholder="标签名" id="addTagName" required>
+                                <button class="btn btn-primary" type="button" id="addTagBtn">增加</button>
+                              </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- 增加标签模态框-end -->
 	    <%- include rightNav %>
 	    
 <%- include footer %>
@@ -89,6 +116,41 @@ $(function () {
         }
       });
       return false;
+    }
+
+    $('#addTag').click(function () {
+        $('#addTagModal').modal('show');
+    });
+    $('#addTagBtn').click(function () {
+        $.post('/addTag',
+            {name: $('#addTagName').val()},
+            function (res) {
+                if (res === '1') {
+                    getTag();
+                    $('#addTagModal').modal('hide');
+                } else if (res === '-1') {
+                    alert('标签名不能为空！');
+                } else {
+                    alert('提交失败！');
+                }
+            },
+            'text'
+        );
+    });
+    getTag();
+    function getTag() {
+        $.get('/getTags',
+            {},
+            function (res) {
+                var tagSelect = document.getElementById('tagSelect');
+                tagSelect.options.length = 0;
+                res = $.parseJSON(res);
+                $.each(res, function (id, tag) {
+                    tagSelect.add(new Option(tag.name, tag._id));
+                });
+            },
+            'text'
+        )
     }
 });
 

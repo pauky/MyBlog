@@ -9,7 +9,7 @@
 
         <div class="blog-post">
           <h2 class="blog-post-title"><%= post.title %></h2>
-          <p class="blog-post-meta"><%= post.meta.updateAt %> by <a href=/u?userId=<%= post.authorId %>&username=<%= post.author %>><%= post.author %></a></p>
+          <p class="blog-post-meta">Create:<%= moment(post.createAt).format('YYYY-MM-DD-hh:mm:ss') %>&nbsp;&nbsp;&nbsp;UPdate:<%= moment(post.updateAt).format('YYYY-MM-DD-hh:mm:ss') %>&nbsp;&nbsp;&nbsp;By <a href=/u?userId=<%= post.authorId %>&username=<%= post.author %>><%= post.author %></a></p>
           <p><%- post.content %></p>
           <!-- 多说评论框 start -->
           <div class="ds-thread" data-thread-key="<%= post._id %>" data-title="<%= post.title %>" data-url="http://localhost:3000/details?id=<%= post._id %>"></div>

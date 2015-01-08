@@ -4,6 +4,7 @@ var config = require('../config');
 var User = require('./user');
 var Post = require('./post');
 var AdminUser = require('./adminUser');
+var Tag = require('./tag');
 
 mongoose.connect('mongodb://localhost/' + config.dbName, function (err) {
   if (err) {
@@ -17,3 +18,4 @@ mongoose.connect('mongodb://localhost/' + config.dbName, function (err) {
 exports.User = User;
 exports.Post = Post;
 exports.AdminUser = AdminUser;
+exports.Tag = Tag;

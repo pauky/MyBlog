@@ -10,11 +10,11 @@ Post.findById = function (id, callback) {
         .findOne({_id: id})
         .exec(callback);
 };
-Post.paging = function (page, callback) {
+Post.paging = function (page, conditionObj, callback) {
     var total = 0,
         skipSum,
         findReturnObj;
-    findReturnObj = Post.find({}, function (err, posts) {
+    findReturnObj = Post.find(conditionObj, function (err, posts) {
         if (err) {
             return callback(err);
         }
@@ -38,8 +38,8 @@ Post.paging = function (page, callback) {
     });
 };
 // 首页文章展示（post leftjoin user）
-Post.indexPostsPage = function (page, callback) {
-    Post.paging(page, function (err, posts, total) {
+Post.postsPage = function (page, conditionObj, callback) {
+    Post.paging(page, conditionObj, function (err, posts, total) {
         var ep = new eventproxy(),
             i;
         if (err) {
@@ -95,7 +95,7 @@ Post.updateReadNum = function (id, callback) {
     });
 };
 
-Post.findByCondition = function (conditionObj, page, callback) {
+Post.findByConditionAndPage = function (conditionObj, page, callback) {
     var total = 0;
     return this
         .find(conditionObj, function (err, posts) {
@@ -113,5 +113,10 @@ Post.findByCondition = function (conditionObj, page, callback) {
         }
         callback(null, posts, total);
     });
+};
+Post.findOneByCondition = function (conditionObj, callback) {
+    return this
+        .findOne(conditionObj)
+        .exec(callback);
 };
 module.exports = Post;

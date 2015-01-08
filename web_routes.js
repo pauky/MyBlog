@@ -11,18 +11,14 @@ function app(app) {
     app.get('/', site.index);
 
     // 用户注册
-    app.get('/reg', function (req, res) {
-        res.render('reg', {
-            title: 'Reg',
-            tips: ''
-        });
-    });
-    app.post('/reg', sign.reg);
+    app.get('/reg', sign.getReg);
+    app.post('/reg', sign.postReg);
 
     // 邮箱激活账号
     app.get('/active_account', sign.active_account);
 
     // 用户登录
+    app.get('/userLogin', sign.checkNotLogin);
     app.get('/userLogin', function (req, res) {
         res.render('login', {
             title: 'Login Page',
@@ -58,6 +54,16 @@ function app(app) {
     });
     app.post('/post', sign.checkLogin);
     app.post('/post', article.post);
+
+    // add tag
+    app.post('/addTag', sign.checkLogin);
+    app.post('/addTag', article.addTag);
+
+    // get tag
+    app.get('/getTags', article.getTags);
+
+    // get posts in tag
+    app.get('/tagArchives', article.getPostInTag);
 
     // details
     app.get('/details', article.details);
@@ -114,8 +120,8 @@ function app(app) {
     app.post('/getPostInfo', article.getPostInfo);
     
     /*这里我们可以直接使用 Express 的 session 功能，所以禁掉 Passport 的 session 功能，前面提到过 Passport 默认会将取得的用户信息存储在 req.user 中而不是 req.session.user，为了保持兼容，所以我们提取并序列化有用的数据保存到 req.session.user 中。*/
-    app.get("/login/github", passport.authenticate("github", {session: false}));
-    app.get("/login/github/callback", passport.authenticate("github", {
+    app.get('/login/github', passport.authenticate('github', {session: false}));
+    app.get('/login/github/callback', passport.authenticate('github', {
         session: false,
         failureRedirect: '/login',
         successFlash: '登陆成功！'
@@ -123,6 +129,13 @@ function app(app) {
         req.session.user = {name: req.user.username, head: req.user._json.avatar_url};
         res.redirect('/');
     });
+
+    // 用户修改个人信息
+    app.get('/personalPage/getUserInfo', sign.checkLogin);
+    app.get('/personalPage/getUserInfo', user.getUserInfo);
+    app.post('/personalPage/reviseUserInfo', user.reviseUserInfo);
+    app.post('/personalPage/revisePw', sign.checkLogin);
+    app.post('/personalPage/revisePw', user.revisePw);
 
 }
 

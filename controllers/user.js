@@ -3,15 +3,18 @@ var config = require('../config'),
     utility = require('utility'),
     moment = require('moment'),
     markdown = require('markdown').markdown,
-    User = require('../models').User,
-    Post = require('../models').Post;
+    validator = require('validator'),
+    Models = require('../models'),
+    User = Models.User,
+    Post = Models.Post;
 
+// 按作者显示文章
 exports.u = function (req, res, next) {
     var userId = req.query.userId,
         username = req.query.username,
         page = req.query.p ? parseInt(req.query.p, 10) : 1;
     if (userId) {
-        Post.findByCondition({authorId: userId}, page, function (err, posts, total) {
+        Post.findByConditionAndPage({authorId: userId}, page, function (err, posts, total) {
             var data = [];
             if (err) {
                 console.log(err);
@@ -26,7 +29,7 @@ exports.u = function (req, res, next) {
             });
             res.render('userArchives', {
                 title: 'UserArchives',
-                tips: '',
+                tips: req.flash('success').toString() || req.flash('error').toString() || '',
                 posts: data,
                 user: req.session.user,
                 page: page,
@@ -39,14 +42,18 @@ exports.u = function (req, res, next) {
         res.render('404');
     }
 };
+
+// 个人主页
 exports.personalPage = function (req, res, next) {
     res.render('personalPage', {
         title: 'Personal',
-        tips: '',
+        tips: req.flash('success').toString() || req.flash('error').toString() || '',
         user: req.session.user,
         moment: moment
     });
 };
+
+// 用户信息分页
 exports.getUserPageInfo = function (req, res) {
     var page = req.body.page ? parseInt(req.body.page, 10) : 1;
     User.paging(page, function (err, users, total) {
@@ -70,6 +77,7 @@ exports.getUserPageInfo = function (req, res) {
     });
 };
 
+// 获取单个用户信息
 exports.getUserInfo = function (req, res, next) {
     var id = req.body.id;
     User.findByCondition({_id: id}, function (err, user) {
@@ -106,5 +114,70 @@ exports.delUser = function (req, res, next) {
         }else {
             res.end('删除失败');
         }
+    });
+};
+
+// 修改用户密码
+exports.revisePw = function (req, res, next) {
+    var id = req.session.user.userId;
+    var md5OriginPw = crypto.createHash('md5').update(req.body.originPw).digest('hex');
+    var newPw = req.body.newPw;
+    if (validator.trim(newPw) === '') {
+        req.flash('error', '密码不能为空');
+        return res.redirect('back');
+    }
+    if (newPw !== req.body.confirmPw) {
+        req.flash('error', '两次密码不一致');
+        return res.redirect('back');
+    }
+    User.findByCondition({_id: id}, function (err, user) {
+        if (err) {
+            console.log(err);
+            return next(err);
+        }
+        if (md5OriginPw !== user.password) {
+            req.flash('error', '密码不正确');
+            return res.redirect('back');
+        } else {
+            User.update({_id: id}, {password: crypto.createHash('md5').update(newPw).digest('hex')}, {}, function(err, result) {
+                if (err) {
+                    console.log(err);
+                    return next(err);
+                }
+                if (result) {
+                    req.flash('success', '修改成功');
+                    return res.redirect('back');
+                } else {
+                    req.flash('error', '修改失败');
+                    return res.redirect('back');
+                }
+            });
+        }        
+    });
+};
+
+// 获取用户基本信息
+exports.getUserInfo = function (req, res, next) {
+    User.findByCondition({_id: req.session.user.userId}, function (err, user) {
+        if (err) {
+            console.log(err);
+            return next(err);
+        }
+        res.end('{"username": "' + user.username + '"}');
+    });
+};
+// 修改用户基本信息
+exports.reviseUserInfo = function (req, res, next) {
+    User.update({_id: req.session.user.userId}, {username: req.body.username}, {}, function(err, user) {
+        if (err) {
+            console.log(err);
+            return next(err);
+        }
+        if (user) {
+            req.flash('success', '修改成功！');
+        } else {
+            req.flash('error', '修改失败！');
+        }
+        res.redirect('back');
     });
 };

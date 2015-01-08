@@ -4,7 +4,19 @@ var config = require('../config'),
     mail = require('../common/mail'),
     User = require('../models').User;
 
-exports.reg = function (req, res, next) {
+exports.getReg = function (req, res, next) {
+    if (config.userReg) {
+        res.render('reg', {
+            title: 'Reg',
+            tips: ''
+        });
+    } else {
+        req.flash('error', '当前注册功能关闭');
+        return res.redirect('back');
+    }
+};
+
+exports.postReg = function (req, res, next) {
     var newUsername = req.body.username,
         password = req.body.password,
         confirmPw = req.body.confirmPw,

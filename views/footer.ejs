@@ -12,7 +12,7 @@ $(function () {
             var html = '', i = 0;
             msg = $.parseJSON(msg);
             for (; i < msg.length; i += 1) {
-                html += '<li><a href="/details?id='+msg[i]._id+'" title="'+msg[i].meta.updateAt+'">'+msg[i].title+'</a></li>';
+                html += '<li><a href="/details?id='+msg[i]._id+'" title="'+msg[i].updateAt+'">'+msg[i].title+'</a></li>';
             }
             $('#topArchives').html(html);
         },'text'
@@ -21,6 +21,15 @@ $(function () {
     if ('<%= tips %>' !== '') {
         tips('<%= tips %>');
     }
+
+    $.get('/getTags', function (res) {
+        var html = '';
+        res = $.parseJSON(res);
+        $.each(res, function (i, item) {
+            html += '<li><a href="/tagArchives?tag='+ item._id +'">'+ item.name +'('+ item.postNum +')</a></li>';
+        });
+        $('#tags').html(html);
+    },'text');
 });
 function tips(tipsContent) {
     function hideModal() {

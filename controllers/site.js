@@ -1,10 +1,13 @@
 var config = require('../config'),
-    Post = require('../models').Post;
+    moment = require('moment'),
+    Models = require('../models'),
+    Post = Models.Post,
+    Tag = Models.Tag;
 
 exports.index = function (req, res, next) {
     //判断是否是第一页，并把请求的页数转换成 number 类型
     var page = req.query.p ? parseInt(req.query.p, 10) : 1;
-    Post.indexPostsPage(page, function (err, data, total) {
+    Post.postsPage(page, {}, function (err, data, total) {
         if (err) {
             console.log(err);
             return next(err);
@@ -15,6 +18,7 @@ exports.index = function (req, res, next) {
             posts: data,
             user: req.session.user,
             page: page,
+            moment: moment,
             isLastPage: page*2 >= total ? '1' : '',
             isFirstPage: (total === 0) || (page === 1) ? '1' : ''
         });

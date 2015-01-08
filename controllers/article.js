@@ -1,6 +1,7 @@
 var config = require('../config'),
     Post = require('../models').Post,
     User = require('../models').User,
+    Tag = require('../models').Tag,
     validator = require('validator'),
     markdown = require('markdown').markdown,
     moment = require('moment'),
@@ -9,11 +10,11 @@ var config = require('../config'),
 
 exports.upload = function (req, res, next) {
     var file = req.files.uploadImg,
-            target_path,
-            fileType,
-            imgURL = '',
-            error = '',
-            jsontest = '';
+        target_path,
+        fileType,
+        imgURL = '',
+        error = '',
+        jsontest = '';
     if (file.size === 0) {
         fs.unlinkSync(file.path); //删除临时文件（同步方式）
         error = '请指定上传文件';
@@ -40,10 +41,10 @@ exports.upload = function (req, res, next) {
 
 exports.post = function (req, res, next) {
     var id = req.body._id,
-            postObj = req.body,
-            _post,
-            title = validator.trim(postObj.title)
-            edit_error = title === '' ? '标题不能为空' : (title.lenght > 50) ? '标题过长' : '';
+        postObj = req.body,
+        _post,
+        title = validator.trim(postObj.title)
+        edit_error = title === '' ? '标题不能为空' : (title.lenght > 50) ? '标题过长' : '';
 
     if (edit_error) {
         req.flash('error',edit_error);
@@ -54,6 +55,7 @@ exports.post = function (req, res, next) {
                 title: validator.escape(postObj.title),
                 content: postObj.content,
                 authorId: req.session.user.userId,
+                tagId: postObj.tag,
                 readNum: 0
             });
             _post.save(function (err) {
@@ -61,8 +63,14 @@ exports.post = function (req, res, next) {
                     console.log(err);
                     return next(err);
                 }
-                req.flash('success', '发表成功');
-                return res.redirect('/post');
+                Tag.updatePostNum(postObj.tag, 'add', function (err, tag) {
+                	if (err) {
+                		console.log(err);
+                		return next(err);
+                	}
+                	req.flash('success', '发表成功');
+                	return res.redirect('/post');
+                });
             });
         }else {
             req.flash('error','内容不能为空');
@@ -122,7 +130,8 @@ exports.details = function (req, res, next) {
                             title: 'Details',
                             tips: '',
                             post: msg,
-                            user: req.session.user
+                            user: req.session.user,
+                            moment: moment
                         });
                     }
                 });
@@ -131,7 +140,8 @@ exports.details = function (req, res, next) {
                     title: 'Details',
                     tips: '',
                     post: {},
-                    user: req.session.user
+                    user: req.session.user,
+                    moment: moment
                 });
             }
             return myDefer.promise;
@@ -153,30 +163,67 @@ exports.delPost = function (req, res, next) {
     var id = req.body.id,
         userId = req.session.user.userId,
         page = req.body.p;
-    Post.remove({_id: req.body.id}, function (err, result) {
+    Post.remove({_id: req.body.id, authorId: req.session.user.userId}, function (err, result) {
         if (err) {
             console.log(err);
             return next(err);
         }
         if (result) {
-            res.end('删除成功');
+        	// 更新标签文章数
+        	Tag.updatePostNum(result.tagId, '', function (err, tag) {
+        		if (err) {
+        			console.log(err);
+        			return next(err);
+        		}
+        		res.end('删除成功');
+        	});
         }else {
             res.end('删除失败');
         }
     });
 };
 
-exports.savePost = function (req, res) {
+exports.savePost = function (req, res, next) {
     var id = req.body.id,
-            title = req.body.title,
-            content = req.body.content;
-    Post.update({_id: id}, {title: title, content: content, meta:{updateAt: Date.now()}}, {}, function(err) {
+        title = req.body.title,
+        content = req.body.content;
+    Post.findOneByCondition({_id: id, authorId: req.session.user.userId}, function (err, oldPost) {
         if (err) {
             console.log(err);
-            res.end('修改失败');
+            return next(err);
         }
-        res.end('修改成功');
+        if (oldPost) {
+            Post.update({_id: id, authorId: req.session.user.userId}, {title: title, content: content, tagId:req.body.tag, updateAt: Date.now()}, function(err, newPost) {
+                if (err) {
+                    console.log(err);
+                    res.end('修改失败');
+                    return next(err);
+                }
+                if (newPost) {
+                    if (oldPost.tagId && oldPost.tagId !== req.body.tag) {
+                        Tag.updatePostNum(req.body.tag, 'add', function (err, tag) {
+                            if (err) {
+                                console.log(err);
+                                return next(err);
+                            }
+                        });
+                        Tag.updatePostNum(oldPost.tagId, '', function (err, tag) {
+                            if (err) {
+                                console.log(err);
+                                return next(err);
+                            }
+                        });
+                    }
+                    res.end('修改成功');
+                } else {
+                    res.end('修改失败');
+                }
+            });
+        } else {
+            res.end('不存在此文章！');
+        }
     });
+    
 };
 
 exports.getPostPageInfo = function (req, res, next) {
@@ -199,7 +246,7 @@ exports.getPostPageInfo = function (req, res, next) {
     }
     function findArchive() {
         var myDefer = Q.defer();
-        Post.findByCondition({authorId: userId}, page, function (err, posts, total) {
+        Post.findByConditionAndPage({authorId: userId}, page, function (err, posts, total) {
             if (err) {
                 console.log(err);
                 myDefer.reject('系统运行错误，请联系管理员');
@@ -230,7 +277,7 @@ exports.getPostPageInfo = function (req, res, next) {
         data = posts.map(function (post, id) {
             var mo = post.toObject(); //将mongoose返回的文档转换为对象
             mo.author = user.username;
-            mo.meta.updateAt = moment(mo.meta.updateAt).format('MMM Do YY');
+            mo.updateAt = moment(mo.updateAt).format('YYYY-MM-DD-hh:mm:ss');
             return mo;
         });
         /*posts.forEach(function (post, id) {
@@ -254,5 +301,61 @@ exports.getPostInfo = function (req, res, next) {
             return next(err);
         }
         res.jsonp(post);
+    });
+};
+
+// 增加文章标签
+exports.addTag = function (req, res, next) {
+	var name = req.body.name;
+	if (validator.trim(name) === '') {
+		return res.end('-1');
+	}
+	var tag = new Tag({
+            name: name,
+            postNum: 0
+        });
+    tag.save(function (err) {
+        if (err) {
+            console.log(err);
+            res.end('0')
+            return next(err);
+        }
+        res.end('1');
+    });
+};
+
+// 获取文章标签
+exports.getTags = function (req, res, next) {
+	Tag.fetch(function (err, tags) {
+		if (err) {
+			console.log(err);
+			res.end('0');
+			return next(err);
+		}
+		tags = tags.map(function (tag, id) {
+			return tag.toObject();
+		});
+		res.end(JSON.stringify(tags));
+	});
+};
+
+// 按标签获取文章
+exports.getPostInTag = function (req, res, next) {
+    var page = req.query.p ? parseInt(req.query.p, 10) : 1;
+	Post.postsPage(page, {tagId: req.query.tag}, function (err, data, total) {
+        if (err) {
+            console.log(err);
+            return next(err);
+        }
+        res.render('tagArchives', {
+            title: 'tagArchives',
+            tips: req.flash('success').toString() || req.flash('error').toString() || '',
+            posts: data,
+            user: req.session.user,
+            page: page,
+            moment: moment,
+            isLastPage: page*2 >= total ? '1' : '',
+            isFirstPage: (total === 0) || (page === 1) ? '1' : ''
+        });
     });
 };
